@@ -62,12 +62,11 @@ def main():
     cap = cv2.VideoCapture(-1)
 
     while cv2.waitKey(1) < 0:
-        _, cv_mat = cap.read()
-        # rgb_frame = mp.Image(image_format=mp.ImageFormat.SRGB, data=cv_mat)
-        # hand_detection_result = hand_detector.detect(rgb_frame);
-        # annotated_image = draw_landmarks_on_image(rgb_frame.numpy_view(), hand_detection_result)
-        # cv2.imshow('frame', annotated_image)
-        cv2.imshow('Binary Game', cv_mat)
+      _, cv_mat = cap.read()
+      rgb_frame = mp.Image(image_format=mp.ImageFormat.SRGB, data=cv_mat)
+      hand_detection_result = hand_detector.detect(rgb_frame)
+      annotated_image = draw_landmarks_on_image(rgb_frame.numpy_view(), hand_detection_result)
+      cv2.imshow('Binary Game', cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR))
 
     cap.release()
     cv2.destroyAllWindows()
