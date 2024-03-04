@@ -1,9 +1,15 @@
 
 import cv2
 import mediapipe as mp
+
+from draw_landmarks import get_default_hand_connections_style, get_default_hand_landmarks_style
+
 mp_drawing = mp.solutions.drawing_utils
-mp_drawing_styles = mp.solutions.drawing_styles
 mp_hands = mp.solutions.hands
+cap = cv2.VideoCapture(0)
+
+# Removes the thumb from the connections to draw
+HAND_CONNECTIONS = frozenset({(17, 18), (0, 17), (13, 14), (13, 17), (18, 19), (5, 6), (5, 9), (14, 15), (0, 5), (9, 10), (9, 13), (10, 11), (19, 20), (6, 7), (15, 16), (11, 12), (7, 8)})
 
 def draw_landmarks(image, results):
     image.flags.writeable = True
@@ -13,13 +19,11 @@ def draw_landmarks(image, results):
         mp_drawing.draw_landmarks(
             image,
             hand_landmarks,
-            mp_hands.HAND_CONNECTIONS,
-            mp_drawing_styles.get_default_hand_landmarks_style(),
-            mp_drawing_styles.get_default_hand_connections_style())
+            HAND_CONNECTIONS,
+            get_default_hand_landmarks_style(),
+            get_default_hand_connections_style())
     return image
 
-# For webcam input:
-cap = cv2.VideoCapture(0)
 with mp_hands.Hands(
     model_complexity=0,
     max_num_hands=4,
