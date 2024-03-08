@@ -129,3 +129,12 @@ def draw_landmarks(image, landmarks):
       # Fill color into the circle
       cv2.circle(image, landmark_px, drawing_spec.circle_radius,
                  drawing_spec.color, drawing_spec.thickness)
+      
+def draw_hand(image, results):
+  image.flags.writeable = True
+  image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+  if results.multi_hand_landmarks:
+    for landmarks in results.multi_hand_landmarks:
+      image = draw_connections(image, landmarks)
+      draw_landmarks(image, landmarks)
+  return image
