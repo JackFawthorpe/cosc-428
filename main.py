@@ -2,26 +2,17 @@
 import cv2
 import mediapipe as mp
 
-from draw_landmarks import get_default_hand_connections_style, get_default_hand_landmarks_style
-
-mp_drawing = mp.solutions.drawing_utils
+from draw_landmarks import draw_connections, draw_landmarks, get_default_hand_connections_style, get_default_hand_landmarks_style
 mp_hands = mp.solutions.hands
 cap = cv2.VideoCapture(0)
 
-# Removes the thumb from the connections to draw
-HAND_CONNECTIONS = frozenset({(17, 18), (0, 17), (13, 14), (13, 17), (18, 19), (5, 6), (5, 9), (14, 15), (0, 5), (9, 10), (9, 13), (10, 11), (19, 20), (6, 7), (15, 16), (11, 12), (7, 8)})
-
-def draw_landmarks(image, results):
+def draw(image, results):
     image.flags.writeable = True
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     if results.multi_hand_landmarks:
-      for hand_landmarks in results.multi_hand_landmarks:
-        mp_drawing.draw_landmarks(
-            image,
-            hand_landmarks,
-            HAND_CONNECTIONS,
-            get_default_hand_landmarks_style(),
-            get_default_hand_connections_style())
+      for landmarks in results.multi_hand_landmarks:
+        image = draw_connections(image, landmarks)
+        draw_landmarks(image, landmarks)
     return image
 
 with mp_hands.Hands(
@@ -43,7 +34,7 @@ with mp_hands.Hands(
 
 
     # Draw the hand annotations on the image.
-    image = draw_landmarks(image, results)
+    image = draw(image, results)
 
     # Flip the image horizontally for a selfie-view display.
     cv2.imshow('Binary Game', cv2.flip(image, 1))

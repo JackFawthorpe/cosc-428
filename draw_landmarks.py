@@ -2,6 +2,11 @@ from mediapipe.python.solutions.hands import HandLandmark
 from mediapipe.python.solutions.drawing_utils import DrawingSpec
 from mediapipe.python.solutions import hands_connections
 from mediapipe.python.solutions import hands
+import mediapipe as mp
+from typing import Mapping
+import cv2
+
+mp_drawing = mp.solutions.drawing_utils
 
 _RADIUS = 5
 _RED = (48, 48, 255)
@@ -89,3 +94,38 @@ def get_default_hand_connections_style():
     for connection in k:
       hand_connection_style[connection] = v
   return hand_connection_style
+
+
+# Removes the thumb from the connections to draw
+HAND_CONNECTIONS = frozenset({(17, 18), (0, 17), (13, 14), (13, 17), (18, 19), (5, 6), (5, 9), (14, 15), (0, 5), (9, 10), (9, 13), (10, 11), (19, 20), (6, 7), (15, 16), (11, 12), (7, 8)})
+THUMB_CONNECTIONS = {1, 2, 3, 4}
+
+
+def draw_connections(image, landmarks):
+  mp_drawing.draw_landmarks(
+              image,
+              landmarks,
+              HAND_CONNECTIONS,
+              connection_drawing_spec=get_default_hand_connections_style(),
+              is_drawing_landmarks=False)
+  return image
+
+def draw_landmarks(image, landmarks):
+  landmark_drawing_spec = get_default_hand_landmarks_style()
+  idx_to_coordinates = {}
+  image_rows, image_cols, _ = image.shape
+  for idx, landmark in enumerate(landmarks.landmark):
+    if (idx in THUMB_CONNECTIONS): continue
+    idx_to_coordinates[idx] = mp_drawing._normalized_to_pixel_coordinates(landmark.x, landmark.y, image_cols, image_rows)
+
+  for idx, landmark_px in idx_to_coordinates.items():
+      drawing_spec = landmark_drawing_spec[idx] if isinstance(
+          landmark_drawing_spec, Mapping) else landmark_drawing_spec
+      # White circle border
+      circle_border_radius = max(drawing_spec.circle_radius + 1,
+                                 int(drawing_spec.circle_radius * 1.2))
+      cv2.circle(image, landmark_px, circle_border_radius, (224, 224, 224),
+                 drawing_spec.thickness)
+      # Fill color into the circle
+      cv2.circle(image, landmark_px, drawing_spec.circle_radius,
+                 drawing_spec.color, drawing_spec.thickness)
