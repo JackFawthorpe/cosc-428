@@ -1,4 +1,5 @@
 
+import math
 import cv2
 import mediapipe as mp
 
@@ -6,6 +7,14 @@ from draw_hand import draw_connections, draw_hand, draw_landmarks, get_default_h
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 cap = cv2.VideoCapture(0)
+
+
+# Index's of the tips of fingers against their bases
+BINARY_ON_CHECKS = [(mp_hands.HandLandmark.PINKY_TIP, mp_hands.HandLandmark.PINKY_MCP),
+                     (mp_hands.HandLandmark.RING_FINGER_TIP, mp_hands.HandLandmark.RING_FINGER_MCP),
+                       (mp_hands.HandLandmark.MIDDLE_FINGER_TIP, mp_hands.HandLandmark.MIDDLE_FINGER_MCP),
+                         (mp_hands.HandLandmark.INDEX_FINGER_TIP, mp_hands.HandLandmark.INDEX_FINGER_MCP)]
+
 
 def print_text(position, text, image):
   # Font settings
@@ -29,11 +38,7 @@ def annotate_image(image, binary_result):
   image = print_text((50, 50), f"{binary_result}", image)
   return image
 
-# Index's of the tips of fingers against their bases
-BINARY_ON_CHECKS = [(mp_hands.HandLandmark.PINKY_TIP, mp_hands.HandLandmark.PINKY_MCP),
-                     (mp_hands.HandLandmark.RING_FINGER_TIP, mp_hands.HandLandmark.RING_FINGER_MCP),
-                       (mp_hands.HandLandmark.MIDDLE_FINGER_TIP, mp_hands.HandLandmark.MIDDLE_FINGER_MCP),
-                         (mp_hands.HandLandmark.INDEX_FINGER_TIP, mp_hands.HandLandmark.INDEX_FINGER_MCP)]
+FINGER_DISTANCE_ERROR = 0.1
 
 def get_binary(hand_processing):
   if not hand_processing.multi_hand_landmarks:
@@ -43,7 +48,7 @@ def get_binary(hand_processing):
     for power_index in range(4):
       tip =  landmarks.landmark[BINARY_ON_CHECKS[power_index][0]]
       dip =  landmarks.landmark[BINARY_ON_CHECKS[power_index][1]]
-      if tip.y < dip.y:
+      if abs(tip.y - dip.y) > FINGER_DISTANCE_ERROR:
         output += 2 ** power_index
   return output
 
